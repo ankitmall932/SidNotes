@@ -6,7 +6,7 @@ export interface IUser extends mongoose.Document
     email: string;
     password: string;
     isVerified: boolean;
-    otp: string;
+    otp: string | null;
     otpExpiry: Date | null;
     otpLastSent: Date | null;
 }

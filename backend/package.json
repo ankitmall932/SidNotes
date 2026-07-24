@@ -26,8 +26,12 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
-    "helmet": "^8.3.0"
+    "@types/nodemailer": "^8.0.1",
+    "helmet": "^8.3.0",
+    "nodemailer": "^9.0.3"
   }
 }
