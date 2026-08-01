@@ -18,3 +18,21 @@ export const registerEmail = async ( email: string, otp: string, username: strin
         throw new Error( err );
     }
 };
+
+export const resetEmail = async ( email: string, otp: string ) =>
+{
+    try
+    {
+        await transporter.sendMail( {
+            from: `"SidNotes" <${ process.env.MAIL_FROM }>`,
+            to: email,
+            subject: `Your OTP for SidNotes Email Verification`,
+            html: `<h1>Hello User</h1>
+            <h2>This is your Account Password Reset otp from SidNotes</h2> 
+            <h3>${ otp }</h3>`
+        } );
+    } catch ( err: any )
+    {
+        throw new Error( err );
+    }
+};

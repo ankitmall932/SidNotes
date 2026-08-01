@@ -32,6 +32,7 @@
     "@types/morgan": "^1.9.10",
     "@types/nodemailer": "^8.0.1",
     "helmet": "^8.3.0",
-    "nodemailer": "^9.0.3"
+    "nodemailer": "^9.0.3",
+    "ua-parser-js": "^2.0.10"
   }
 }
