@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export interface IUser extends mongoose.Document
+export interface IUser
 {
     username: string;
     email: string;
@@ -30,12 +30,15 @@ const userSchema = new mongoose.Schema<IUser>( {
     },
     otp: {
         type: String,
+        default: null
     },
     otpExpiry: {
-        type: Date
+        type: Date,
+        default: null
     },
     otpLastSent: {
-        type: Date
+        type: Date,
+        default: null
     }
 },
     { timestamps: true }

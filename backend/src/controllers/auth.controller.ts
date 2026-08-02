@@ -1,5 +1,5 @@
 import { type Request, type Response, type NextFunction } from "express";
-import jwt, { type JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from "../models/user.model.js";
 import { registerEmail, resetEmail } from "../utils/sendMail.utils.js";
@@ -307,5 +307,26 @@ export const resetPassword = async ( req: Request, res: Response, next: NextFunc
         {
             next( err );
         }
+    }
+};
+
+export const device = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const device = await Device.find( {
+            user: req.user!._id,
+        } ).sort( { lastActive: -1 } );
+        const updateDevice = device.map( ( devices ) => ( {
+            ...devices.toObject(),
+            currentDevice: devices.token === req.token,
+        } ) );
+        res.status( 200 ).json( {
+            success: true,
+            devices: updateDevice,
+        } );
+    } catch ( err )
+    {
+        next( err );
     }
 };
