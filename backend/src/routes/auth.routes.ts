@@ -16,4 +16,14 @@ router.post( '/login', controllers.login );
 
 router.get( '/device', protect, controllers.device );
 
+router.get( '/profile', protect, controllers.getProfile );
+
+router.post( '/refresh', controllers.refresh );
+
+router.post( '/logout', protect, controllers.logout );
+
+router.post( '/logout-all', protect, controllers.logoutAll );
+
+router.delete( '/delete-account', protect, controllers.deleteAccount );
+
 export default router;

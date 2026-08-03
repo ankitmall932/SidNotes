@@ -1,4 +1,4 @@
-import { type Request, type Response, type NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from "../models/user.model.js";
@@ -8,6 +8,7 @@ import { genAccessToken, genRefreshToken } from "../utils/token.utils.js";
 import Session from "../models/session.model.js";
 import Device from "../models/device.model.js";
 import { UAParser } from "ua-parser-js";
+import type { TokenPayload } from "../types/tokenPayload.js";
 
 export const register = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
 {
@@ -162,10 +163,6 @@ export const verifyOtp = async ( req: Request, res: Response, next: NextFunction
         res.status( 200 ).json( {
             message: 'User verified successfully',
             accessToken,
-            user: {
-                name: user.username,
-                email: user.email
-            }
         } );
     } catch ( err )
     {
@@ -233,10 +230,6 @@ export const login = async ( req: Request, res: Response, next: NextFunction ): 
         res.status( 200 ).json( {
             message: `Welcome Back ${ user.username }`,
             accessToken,
-            user: {
-                name: user.username,
-                email: user.email
-            }
         } );
     }
     catch ( err )
@@ -324,6 +317,165 @@ export const device = async ( req: Request, res: Response, next: NextFunction ):
         res.status( 200 ).json( {
             success: true,
             devices: updateDevice,
+        } );
+    } catch ( err )
+    {
+        next( err );
+    }
+};
+
+export const getProfile = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const users = req.user!._id;
+        const user = await User.findById( users ).select( '-password' );
+        if ( !user )
+        {
+            res.status( 404 ).json( {
+                message: 'User not found'
+            } );
+            return;
+        }
+        res.status( 200 ).json( user );
+    } catch ( err )
+    {
+        next( err );
+    }
+};
+
+export const refresh = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const token = req.cookies.refreshToken;
+        if ( !token )
+        {
+            res.status( 401 ).json( {
+                message: 'Refresh Token not Found'
+            } );
+            return;
+        }
+        const secret = process.env.JWT_REFRESH_TOKEN;
+        if ( !secret )
+        {
+            throw new Error( 'JWT secret is not defined' );
+        }
+        const decoded = jwt.verify( token, secret ) as TokenPayload;
+        const user = await User.findById( decoded.id );
+        if ( !user )
+        {
+            res.status( 404 ).json( {
+                message: 'User Not Found'
+            } );
+            return;
+        }
+        const session = await Session.findOne( {
+            refreshToken: token,
+            revoked: false
+        } );
+        if ( !session )
+        {
+            res.status( 401 ).json( {
+                message: 'Invalid Session'
+            } );
+            return;
+        }
+        const accessToken = genAccessToken( user );
+        res.status( 200 ).json( {
+            accessToken
+        } );
+    } catch ( err )
+    {
+        next( err );
+    }
+};
+
+export const logout = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const isProduction = process.env.NODE_ENV === 'production';
+        const token = req.cookies.refreshToken;
+        if ( !token )
+        {
+            res.status( 400 ).json( {
+                message: 'Token Not Found'
+            } );
+            return;
+        }
+        await Session.findOneAndUpdate(
+            { refreshToken: token },
+            { revoked: true }
+        );
+        res.clearCookie( 'refreshToken', {
+            httpOnly: true,
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction
+        } );
+        res.status( 200 ).json( {
+            message: 'Logged Out Successfully'
+        } );
+    } catch ( err )
+    {
+        next( err );
+    }
+};
+
+export const logoutAll = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const isProduction = process.env.NODE_ENV === 'production';
+        const token = req.cookies.refreshToken;
+        if ( !token )
+        {
+            res.status( 400 ).json( {
+                message: 'Token not found'
+            } );
+            return;
+        }
+        const secret = process.env.JWT_REFRESH_TOKEN;
+        if ( !secret )
+        {
+            throw new Error( 'JWT Refresh token is not defined' );
+        }
+        const decoded = jwt.verify( token, secret ) as TokenPayload;
+        await Session.updateMany( { user: decoded.id }, { revoked: true } );
+        res.clearCookie( 'refreshToken', {
+            httpOnly: true,
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction
+        } );
+        res.status( 200 ).json( {
+            message: 'Logout from all devices is successful'
+        } );
+    } catch ( err )
+    {
+        next( err );
+    }
+};
+
+export const deleteAccount = async ( req: Request, res: Response, next: NextFunction ): Promise<void> =>
+{
+    try
+    {
+        const isProduction = process.env.NODE_ENV === 'production';
+        const userId = req.user._id;
+        await Session.deleteMany( {
+            user: userId
+        } );
+        await Device.deleteMany( {
+            user: userId
+        } );
+        await User.findOneAndDelete( userId );
+        res.clearCookie( 'refreshToken', {
+            httpOnly: true,
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction
+        } );
+        res.status( 200 ).json( {
+            message: 'Account Deleted Successfully'
         } );
     } catch ( err )
     {

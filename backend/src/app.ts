@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -8,6 +9,7 @@ import authRouter from './routes/auth.routes.js';
 
 const app = express();
 app.set( 'trust proxy', 1 );
+app.use( cookieParser() );
 app.use( helmet() );
 app.use( cors( {
 
