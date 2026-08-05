@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface IDevice extends mongoose.Document
+export interface IDevice
 {
     user: any;
     browser: string;

@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { globalErrorHandler } from './middleware/global.error.js';
 import authRouter from './routes/auth.routes.js';
+import topicRouter from './routes/topic.routes.js';
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use( morgan( 'dev' ) );
 app.use( express.json() );
 
 app.use( "/api/auth", authRouter );
+app.use( '/topic', topicRouter );
 
 app.use( globalErrorHandler );
 

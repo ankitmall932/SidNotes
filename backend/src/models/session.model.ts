@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface ISession extends mongoose.Document
+export interface ISession 
 {
     user: any;
     refreshToken: string;
